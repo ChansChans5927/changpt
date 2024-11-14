@@ -35,7 +35,7 @@ def handle_chat_interaction(user_input):
     messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.write(user_input)
-    response_stream = chain.stream(input=user_input)
+    response_stream = chain.stream(input=st.session_state.messages)
     with st.chat_message("assistant"):
         response = st.write_stream(response_stream)
     messages.append({"role": "assistant", "content": response})

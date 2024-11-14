@@ -1,0 +1,17 @@
+FROM ./YOUR_CUSTOM_MODEL_NAME.gguf
+TEMPLATE """{{- if .System }}
+<|begin_of_text|>system {{ .System }}<|end_of_text|>
+{{- end }}
+<|begin_of_text|>user
+{{ .Prompt }}<|end_of_text|>
+<|begin_of_text|>assistant
+"""
+
+SYSTEM """"""
+
+PARAMETER temperature 0.7
+PARAMETER num_ctx 4096 
+PARAMETER stop <|begin_of_text|>
+PARAMETER stop <|end_of_text|>
+PARAMETER stop <|eot_id|>
+PARAMETER stop <|end_of_text|>

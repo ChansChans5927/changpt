@@ -16,7 +16,4 @@ st.markdown("""
     <a href="/llama" target="_self" style="text-decoration: none;">
         <p>🦙 llama3</p>
     </a>
-    <a href="/llamaKorean" target="_self" style="text-decoration: none;">
-        <p>🇰🇷 llama-korean</p>
-    </a>
     """, unsafe_allow_html=True)
