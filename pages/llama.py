@@ -1,10 +1,10 @@
 import streamlit as st
+from datetime import datetime
 from langchain_ollama import ChatOllama
 from langchain.agents import AgentExecutor, create_react_agent, Tool
-from langchain.prompts import PromptTemplate
 from langchain_community.utilities import ArxivAPIWrapper,WikipediaAPIWrapper
 from langchain_community.tools import ArxivQueryRun,WikipediaQueryRun,DuckDuckGoSearchRun
-from langchain import hub
+from langchain_core.prompts.prompt import PromptTemplate
 
 from dotenv import load_dotenv
 
@@ -17,7 +17,38 @@ st.sidebar.header("Model Parameters")
 temperature = st.sidebar.slider("Temperature", min_value=0.0, max_value=1.0, value=0.0, step=0.1)
 top_p = st.sidebar.slider("Top-p", min_value=0.0, max_value=1.0, value=0.9, step=0.1)
 
-prompt = hub.pull("x-05/react-chat-history")
+template = """ 
+You are a great AI-Assistant that has access to additional tools in order to answer the following questions as best you can. Always answer in the same language as the user question. You have access to the following tools:
+
+{tools}
+
+Chat history:
+{chat_history}
+
+To use a tool, please use the following format:
+
+'''
+Thought: Do I need to use a tool? Yes
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat 3 times)
+'''
+
+When you have a response to say to the Human, or if you do not need to use a tool, you MUST use the format:
+'''
+Thought: Do I need to use a tool? No
+Final Answer: [your response here]
+'''
+
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}
+"""
+
+prompt = PromptTemplate.from_template(template)
 
 # Models
 ollama = ChatOllama(
@@ -34,10 +65,17 @@ arxiv_tool = ArxivQueryRun(api_wrapper=arxiv_wrapper)
 api_wrapper = WikipediaAPIWrapper(top_k_results=1,doc_content_chars_max=200)
 wiki_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
 
+date_tool = Tool.from_function(
+    func=lambda x: datetime.now().strftime("%A, %B %d, %Y"),
+    name="Current Date",
+    description="Useful for when you are need to find the current date and/or time",
+)
+
 tools = [
     search_tool,
     arxiv_tool,
-    wiki_tool
+    wiki_tool,
+    date_tool
 ]
 
 react_agent = create_react_agent(
