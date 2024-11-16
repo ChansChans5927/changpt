@@ -1,8 +1,13 @@
 # Get Started
 
+#### 요구 사항 (Requirements)
+
+- **Python**: 3.9.0
+- **pip**: 20.2.3
+
 #### 1. 가상환경 생성
 
-python -m venv .venv
+python -m venv .venv  
 .venv/Scripts/Activate 로 가상환경으로 전환
 
 #### 2. 모듈 설치
