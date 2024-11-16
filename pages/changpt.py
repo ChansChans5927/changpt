@@ -11,12 +11,13 @@ temperature = st.sidebar.slider("Temperature", min_value=0.0, max_value=1.0, val
 top_p = st.sidebar.slider("Top-p", min_value=0.0, max_value=1.0, value=0.9, step=0.1)
 
 # Models
-llm = ChatOllama(model="changpt:latest", temperature=temperature, top_p=top_p)
+llm = ChatOllama(model="llama3:latest", temperature=temperature, top_p=top_p)
 
 prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are Chan-GPT. When a user asks for a stock recommendation, suggest a high-growth company from the S&P 500 index."
+    ("system", "You are Chan-GPT. Always answer in the same language as the user question. When a user asks for a stock recommendation, suggest a high-growth company from the S&P 500 index."
                "If there are multiple candidates, recommend only one stock."
-               "Also, inform the user about the suggested investment duration in terms of months."),
+               "Also, inform the user about the suggested investment duration in terms of months."
+    ),
     ("user", "{input}")
 ])
 
@@ -24,10 +25,10 @@ prompt = ChatPromptTemplate.from_messages([
 chain = prompt | llm | StrOutputParser()
 
 # initial state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+if "changpt_messages" not in st.session_state:
+    st.session_state.changpt_messages = []
 
-messages = st.session_state.messages
+messages = st.session_state.changpt_messages
 for msg in messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
@@ -35,7 +36,7 @@ def handle_chat_interaction(user_input):
     messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.write(user_input)
-    response_stream = chain.stream(input=st.session_state.messages)
+    response_stream = chain.stream(input=st.session_state.changpt_messages)
     with st.chat_message("assistant"):
         response = st.write_stream(response_stream)
     messages.append({"role": "assistant", "content": response})

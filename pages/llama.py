@@ -68,7 +68,7 @@ def create_agent_executor(tools, temperature, top_p):
 
 #세션 상태에 저장된 채팅 기록을 화면에 표시
 def display_chat_history():
-    messages = st.session_state.get("messages", [])
+    messages = st.session_state.get("ollama_messages", [])
     for msg in messages:
         st.chat_message(msg["role"]).write(msg["content"])
     return messages
@@ -87,11 +87,11 @@ def handle_chat_interaction(user_input, agent_executor, messages):
         st.write(search_results["output"])
         
     messages.append({"role": "assistant", "content": search_results["output"]})
-    st.session_state.messages = messages
+    st.session_state.ollama_messages = messages
 
 # 세션 상태 초기화
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+if "ollama_messages" not in st.session_state:
+    st.session_state.ollama_messages = []
 
 # 파라미터 초기화
 temperature, top_p = initialize_parameters()

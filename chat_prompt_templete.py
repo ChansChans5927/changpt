@@ -22,7 +22,7 @@ def get_prompt_template():
     When you have a response to say to the Human, or if you do not need to use a tool, you MUST use the format:
     '''
     Thought: Do I need to use a tool? No
-    Final Answer: [your response here]
+    Final Answer: [Provide your response here in the same language as the user's question]
     '''
 
 
