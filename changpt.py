@@ -10,17 +10,18 @@ from dotenv import load_dotenv
 
 # 환경 변수 로드 및 템플릿 파일 경로 추가
 load_dotenv()
-sys.path.append("../chat_prompt_templete.py")
+sys.path.append("./chat_prompt_templete.py")
 from chat_prompt_templete import get_prompt_template
 
 # Streamlit 앱 기본 설정
-st.set_page_config(page_title="llama3", page_icon="🦙")
-st.title("llama3")
+st.set_page_config(page_title="Chan-GPT", page_icon="🤖")
+st.title("Chan-GPT")
+st.write("Chat with Chan-GPT to get stock recommendation and investment duration.")
 
 #모델 파라미터를 사이드바에서 초기화
 def initialize_parameters():
     st.sidebar.header("Model Parameters")
-    temperature = st.sidebar.slider("Temperature", min_value=0.0, max_value=1.0, value=0.0, step=0.1)
+    temperature = st.sidebar.slider("Temperature", min_value=0.0, max_value=1.0, value=0.3, step=0.1)
     top_p = st.sidebar.slider("Top-p", min_value=0.0, max_value=1.0, value=0.9, step=0.1)
     return temperature, top_p
 
@@ -48,7 +49,7 @@ def create_tools():
 #에이전트 실행자를 생성하고 반환
 def create_agent_executor(tools, temperature, top_p):
     llama = ChatOllama(
-        model="llama3:latest",
+        model="changpt:latest",
         temperature=temperature,
         top_p=top_p
     )
@@ -68,7 +69,7 @@ def create_agent_executor(tools, temperature, top_p):
 
 #세션 상태에 저장된 채팅 기록을 화면에 표시
 def display_chat_history():
-    messages = st.session_state.get("ollama_messages", [])
+    messages = st.session_state.get("messages", [])
     for msg in messages:
         st.chat_message(msg["role"]).write(msg["content"])
     return messages
@@ -84,14 +85,15 @@ def handle_chat_interaction(user_input, agent_executor, messages):
             search_results = agent_executor.invoke(
                 {"input": user_input, "chat_history": messages}
             )
-        st.write(search_results["output"])
+        output_text = search_results["output"].strip("'''")
+        st.write(output_text)
         
-    messages.append({"role": "assistant", "content": search_results["output"]})
-    st.session_state.ollama_messages = messages
+    messages.append({"role": "assistant", "content": output_text})
+    st.session_state.messages = messages
 
 # 세션 상태 초기화
-if "ollama_messages" not in st.session_state:
-    st.session_state.ollama_messages = []
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # 파라미터 초기화
 temperature, top_p = initialize_parameters()

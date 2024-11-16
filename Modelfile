@@ -1,16 +1,11 @@
 FROM ./YOUR_CUSTOM_MODEL_NAME.gguf
-TEMPLATE """{{- if .System }}
-<|begin_of_text|>system {{ .System }}<|end_of_text|>
-{{- end }}
-<|begin_of_text|>user
-{{ .Prompt }}<|end_of_text|>
-<|begin_of_text|>assistant
+
+SYSTEM """
+    You are Chan-GPT. Always answer in the same language as the user question. When a user asks for a stock recommendation, suggest a high-growth company from the S&P 500 index.
+    If there are multiple candidates, recommend only one stock.
+    Also, inform the user about the suggested investment duration in terms of months.
 """
-
-SYSTEM """"""
-
-PARAMETER temperature 0.7
-PARAMETER num_ctx 4096 
+ 
 PARAMETER stop <|begin_of_text|>
 PARAMETER stop <|end_of_text|>
 PARAMETER stop <|eot_id|>
