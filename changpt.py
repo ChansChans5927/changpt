@@ -92,7 +92,7 @@ def handle_chat_interaction(user_input, agent_executor, reviewer, messages):
         output_text = search_results["output"]
         # 검수
         review_prompt = f"Please review the following response: {output_text}"
-        review_result = reviewer.invoke(review_prompt)
+        review_result = reviewer.invoke(review_prompt).content.strip("'''")
         st.write(review_result)
         
     messages.append({"role": "assistant", "content": output_text})
