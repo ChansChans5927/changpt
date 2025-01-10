@@ -3,9 +3,7 @@ import streamlit as st
 from datetime import datetime
 from langchain_ollama import ChatOllama
 from langchain.agents import AgentExecutor, create_react_agent, Tool
-from langchain_community.utilities import ArxivAPIWrapper
 from langchain_community.utilities import GoogleSerperAPIWrapper
-from langchain_community.tools import ArxivQueryRun, DuckDuckGoSearchRun
 from dotenv import load_dotenv
 
 # 환경 변수 로드 및 템플릿 파일 경로 추가
@@ -22,29 +20,28 @@ st.write("Chat with Chan-GPT to get stock recommendation and investment duration
 def initialize_parameters():
     st.sidebar.header("Model Parameters")
     temperature = st.sidebar.slider("Temperature", min_value=0.0, max_value=1.0, value=0.3, step=0.1)
-    top_p = st.sidebar.slider("Top-p", min_value=0.0, max_value=1.0, value=0.9, step=0.1)
+    top_p = st.sidebar.slider("Top-p", min_value=0.0, max_value=1.0, value=0.7, step=0.1)
     return temperature, top_p
 
 #에이전트가 사용할 도구들을 생성하고 반환
 def create_tools():
-    search_tool = DuckDuckGoSearchRun(name="Search")
+    # Google Serper API Wrapper 설정
+    search_tool = GoogleSerperAPIWrapper()
     
-    arxiv_wrapper = ArxivAPIWrapper(top_k_results=1, doc_content_chars_max=200)
-    arxiv_tool = ArxivQueryRun(api_wrapper=arxiv_wrapper)
+    # Tool 객체로 래핑
+    search_tool = Tool(
+        name="Google Search",
+        func=search_tool.run,
+        description="Use this tool to search for information on the web using Google Search."
+    )
     
     date_tool = Tool.from_function(
         func=lambda x: datetime.now().strftime("%A, %B %d, %Y"),
         name="Current Date",
         description="Useful for when you are need to find the current date and/or time",
     )
-
-    google_serper_tool = Tool.from_function(
-        func=GoogleSerperAPIWrapper().run,
-        name="Google Search",
-        description="Search using Google Serper API to find precise information"
-    )
     
-    return [search_tool, arxiv_tool, google_serper_tool, date_tool]
+    return [search_tool, date_tool]
 
 #에이전트 실행자를 생성하고 반환
 def create_agent_executor(tools, temperature, top_p):
@@ -67,6 +64,13 @@ def create_agent_executor(tools, temperature, top_p):
         verbose=True
     )
 
+# 검수 AI
+def create_review_agent():
+    reviewer_llm = ChatOllama(
+        model="fixer:latest"
+    )
+    return reviewer_llm
+
 #세션 상태에 저장된 채팅 기록을 화면에 표시
 def display_chat_history():
     messages = st.session_state.get("messages", [])
@@ -75,7 +79,7 @@ def display_chat_history():
     return messages
 
 #사용자의 입력을 처리하고 assistant의 응답을 표시
-def handle_chat_interaction(user_input, agent_executor, messages):
+def handle_chat_interaction(user_input, agent_executor, reviewer, messages):
     messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.write(user_input)
@@ -85,8 +89,11 @@ def handle_chat_interaction(user_input, agent_executor, messages):
             search_results = agent_executor.invoke(
                 {"input": user_input, "chat_history": messages}
             )
-        output_text = search_results["output"].strip("'''")
-        st.write(output_text)
+        output_text = search_results["output"]
+        # 검수
+        review_prompt = f"Please review the following response: {output_text}"
+        review_result = reviewer.invoke(review_prompt)
+        st.write(review_result)
         
     messages.append({"role": "assistant", "content": output_text})
     st.session_state.messages = messages
@@ -101,6 +108,7 @@ temperature, top_p = initialize_parameters()
 tools = create_tools()
 # 에이전트 실행자 생성
 agent_executor = create_agent_executor(tools, temperature, top_p)
+reviewer = create_review_agent()
 
 # 채팅 기록 표시
 messages = display_chat_history()
@@ -108,4 +116,4 @@ messages = display_chat_history()
 # 사용자의 입력 처리
 user_input = st.chat_input("Type your message here...")
 if user_input:
-    handle_chat_interaction(user_input, agent_executor, messages)
+    handle_chat_interaction(user_input, agent_executor, reviewer, messages)

@@ -30,4 +30,4 @@ PowerShell에 ollama create 모델 이름 -f ./Modelfile
 #### 5. Streamlit 실행
 
 .venv/Scripts/Activate  
-streamlit run Home.py
+streamlit run changpt.py
