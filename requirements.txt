@@ -5,5 +5,5 @@ numpy==1.25.2
 SQLAlchemy==2.0.35
 streamlit
 langchain-ollama
-duckduckgo-search
-arxiv
+yfinance
+matplotlib

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 # 환경 변수 로드 및 템플릿 파일 경로 추가
 load_dotenv()
-sys.path.append("./chat_prompt_templete.py")
+sys.path.append("../chat_prompt_templete.py")
 from chat_prompt_templete import get_prompt_template
 
 # Streamlit 앱 기본 설정
